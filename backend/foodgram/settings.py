@@ -15,6 +15,8 @@ DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -151,3 +153,12 @@ STATIC_ROOT = BASE_DIR / "static"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://nikita.hopto.org',
+    'http://nikita.hopto.org',
+    'http://158.160.202.212',
+    'http://localhost',
+    'http://127.0.0.1',
+]
