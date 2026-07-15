@@ -1,17 +1,10 @@
-from constants import MIN_COOKING_TIME
 from djoser.serializers import UserSerializer
 from rest_framework import serializers
 
 from api.fields import Base64ImageField
-
+from constants import MIN_COOKING_TIME
 from users.models import (
-    Ingredient,
-    Recipe,
-    RecipeIngredient,
-    Subscription,
-    Tag,
-    User,
-)
+    Ingredient, Recipe, RecipeIngredient, Subscription, Tag, User,)
 
 
 class CustomUserSerializer(UserSerializer):

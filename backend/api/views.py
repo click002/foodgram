@@ -7,33 +7,19 @@ from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import (
-    IsAuthenticated,
-    IsAuthenticatedOrReadOnly
-)
+    IsAuthenticated, IsAuthenticatedOrReadOnly,)
 from rest_framework.response import Response
 
 from api.filters import IngredientFilter, RecipeFilter
 from api.permissions import IsAuthorOrReadOnly
-
 from users.models import (
-    Favorite,
-    Ingredient,
-    Recipe,
-    RecipeIngredient,
-    ShoppingCart,
-    Tag,
-    Subscription,
-)
+    Favorite, Ingredient, Recipe, RecipeIngredient, ShoppingCart, Subscription,
+    Tag,)
 
 from .serializers import (
-    IngredientSerializer,
-    RecipeCreateUpdateSerializer,
-    RecipeListSerializer,
-    RecipeMinifiedSerializer,
-    TagSerializer,
-    CustomUserSerializer,
-    UserWithRecipesSerializer,
-)
+    CustomUserSerializer, IngredientSerializer, RecipeCreateUpdateSerializer,
+    RecipeListSerializer, RecipeMinifiedSerializer, TagSerializer,
+    UserWithRecipesSerializer,)
 
 User = get_user_model()
 
