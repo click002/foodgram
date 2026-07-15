@@ -1,6 +1,7 @@
 from constants import (MAX_LENGTH_INGREDIENT_NAME, MAX_LENGTH_RECIPE_NAME,
                        MAX_LENGTH_TAG_NAME, MAX_LENGTH_TAG_SLUG,
                        MAX_LENGTH_UNIT)
+
 from django.db import models
 
 
@@ -42,7 +43,12 @@ class Ingredient(models.Model):
         verbose_name = "Ингредиент"
         verbose_name_plural = "Ингредиенты"
         ordering = ["name"]
-        unique_together = ("name", "measurement_unit")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["name", "measurement_unit"],
+                name="unique_ingredient_name_unit"
+            )
+        ]
 
     def __str__(self):
         return f"{self.name} {self.measurement_unit}"
@@ -92,7 +98,12 @@ class Recipe(models.Model):
         verbose_name = "Рецепт"
         verbose_name_plural = "Рецепты"
         ordering = ["-pub_date"]
-        unique_together = ("author", "name")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["author", "name"],
+                name="unique_author_recipe"
+            )
+        ]
 
     def __str__(self):
         return self.name
@@ -119,63 +130,56 @@ class RecipeIngredient(models.Model):
     class Meta:
         verbose_name = "Ингредиент в рецепте"
         verbose_name_plural = "Ингредиенты в рецептах"
-        unique_together = ("recipe", "ingredient")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["recipe", "ingredient"],
+                name="unique_recipe_ingredient"
+            )
+        ]
 
     def __str__(self):
         return f"{self.ingredient.name} в {self.recipe.name}"
 
 
-class Favorite(models.Model):
-    """Избранное"""
-
+class BaseUserRecipeRelation(models.Model):
     user = models.ForeignKey(
         "users.User",
         on_delete=models.CASCADE,
-        related_name="favorites",
         verbose_name="Пользователь",
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name="favorited_by_users",
         verbose_name="Рецепт",
     )
 
     class Meta:
+        abstract = True
+        default_related_name = "user_recipe_relations"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "recipe"],
+                name="unique_user_recipe"
+            )
+        ]
+
+
+class Favorite(BaseUserRecipeRelation):
+    """Избранное"""
+
+    class Meta(BaseUserRecipeRelation.Meta):
         verbose_name = "Избранный рецепт"
         verbose_name_plural = "Избранные рецепты"
-        unique_together = ("user", "recipe")
         ordering = ["recipe__name"]
 
-    def __str__(self):
-        return f"Автор {self.user.username}, рецепт {self.recipe.name}"
 
-
-class ShoppingCart(models.Model):
+class ShoppingCart(BaseUserRecipeRelation):
     """Модель корзины покупок"""
-
-    user = models.ForeignKey(
-        "users.User",
-        on_delete=models.CASCADE,
-        related_name="shopping_cart",
-        verbose_name="Корзина пользователя",
-    )
-
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-        related_name="in_shopping_cart",
-        verbose_name="Рецепт в корзине",
-    )
 
     created_at = models.DateTimeField(
         auto_now_add=True, verbose_name="Дата добавления"
     )
 
-    class Meta:
+    class Meta(BaseUserRecipeRelation.Meta):
         verbose_name = "Корзина покупок"
         verbose_name_plural = "Корзины покупок"
-        unique_together = ("user", "recipe")
-
-    def __str__(self):
-        return f"Покупатель {self.user} добавил {self.recipe} в корзину"

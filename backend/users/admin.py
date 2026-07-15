@@ -7,7 +7,7 @@ admin.site.empty_value_display = "Не задано"
 
 
 @admin.register(User)
-class CustomUserAdmin(UserAdmin):
+class FoodgramUserAdmin(UserAdmin):
     list_display = (
         "id",
         "username",
@@ -24,6 +24,14 @@ class CustomUserAdmin(UserAdmin):
     )
 
     list_filter = ("is_active", "is_staff", "is_superuser", "date_joined")
+
+    fieldsets = UserAdmin.fieldsets + (
+        ("Дополнительные поля", {"fields": ("avatar", "subscriptions")}),
+    )
+
+    add_fieldsets = UserAdmin.add_fieldsets + (
+        ("Дополнительные поля", {"fields": ("avatar", "subscriptions")}),
+    )
 
 
 @admin.register(Subscription)

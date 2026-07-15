@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
+from .models import Favorite, Ingredient, Recipe, RecipeIngredient, ShoppingCart, Tag
 
 admin.site.empty_value_display = "Не задано"
 
@@ -32,6 +32,22 @@ class IngredientAdmin(admin.ModelAdmin):
     list_filter = ("measurement_unit",)
 
 
+class RecipeIngredientInline(admin.TabularInline):
+    """Inline-форма для добавления ингредиентов прямо на странице рецепта"""
+    model = RecipeIngredient
+    extra = 1
+    min_num = 1
+    validate_min_num = True
+
+
+class RecipeTagInline(admin.TabularInline):
+    """Inline-форма для добавления тегов прямо на странице рецепта"""
+    model = Recipe.tags.through
+    extra = 1
+    min_num = 1
+    validate_min_num = True
+
+
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     list_display = (
@@ -49,6 +65,11 @@ class RecipeAdmin(admin.ModelAdmin):
     )
 
     list_filter = ("author", "tags", "pub_date")
+
+    inlines = [
+        RecipeIngredientInline,
+        RecipeTagInline,
+    ]
 
     @admin.display(description="В избранном")
     def favorites_count_display(self, obj):

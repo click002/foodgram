@@ -1,39 +1,8 @@
 from djoser.serializers import UserSerializer
 from rest_framework import serializers
 
+from backend.recipes.serializers2 import RecipeMinifiedSerializer
 from .models import Subscription, User
-
-
-class CustomUserCreateSerializer(serializers.ModelSerializer):
-    """Сериализатор для регистрации пользователя."""
-
-    password = serializers.CharField(write_only=True, required=True)
-
-    class Meta:
-        model = User
-        fields = (
-            "id",
-            "email",
-            "username",
-            "first_name",
-            "last_name",
-            "password",
-        )
-        extra_kwargs = {
-            "email": {"required": True},
-            "first_name": {"required": True},
-            "last_name": {"required": True},
-        }
-
-    def validate(self, attrs):
-        """Проверка данных перед созданием."""
-        return super().validate(attrs)
-
-    def create(self, validated_data):
-        """Создает пользователя с хэшированным паролем."""
-        password = validated_data.pop("password")
-        user = User.objects.create_user(**validated_data, password=password)
-        return user
 
 
 class CustomUserSerializer(UserSerializer):
@@ -57,11 +26,11 @@ class CustomUserSerializer(UserSerializer):
     def get_is_subscribed(self, obj):
         """Проверяет, подписан ли текущий пользователь на данного автора."""
         request = self.context.get("request")
-        if request and request.user.is_authenticated:
-            return Subscription.objects.filter(
-                subscriber=request.user, author=obj
-            ).exists()
-        return False
+        return (
+            request
+            and request.user.is_authenticated
+            and request.user.following.filter(author=obj).exists()
+        )
 
     def get_avatar(self, obj):
         """Возвращает полный URL аватара."""
@@ -73,34 +42,17 @@ class CustomUserSerializer(UserSerializer):
         return None
 
 
-class UserWithRecipesSerializer(serializers.ModelSerializer):
+class UserWithRecipesSerializer(CustomUserSerializer):
     """Подписки пользователя и его рецепты"""
 
-    is_subscribed = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
-    class Meta:
-        model = User
-        fields = (
-            "id",
-            "username",
-            "first_name",
-            "last_name",
-            "email",
-            "avatar",
-            "is_subscribed",
+    class Meta(CustomUserSerializer.Meta):
+        fields = CustomUserSerializer.Meta.fields + (
             "recipes",
             "recipes_count",
         )
-
-    def get_is_subscribed(self, obj):
-        request = self.context.get("request")
-        if request and request.user.is_authenticated:
-            return Subscription.objects.filter(
-                subscriber=request.user, author=obj
-            ).exists()
-        return False
 
     def get_recipes(self, obj):
         """Возвращает рецепты автора с учетом recipes_limit."""
@@ -112,19 +64,14 @@ class UserWithRecipesSerializer(serializers.ModelSerializer):
             try:
                 recipes_limit = int(recipes_limit)
                 recipes = recipes[:recipes_limit]
-            except ValueError:
+            except (ValueError, TypeError):
                 pass
 
-        result = []
-        for recipe in recipes:
-            recipe_data = {
-                "id": recipe.id,
-                "name": recipe.name,
-                "cooking_time": recipe.cooking_time,
-                "image": recipe.image.url if recipe.image else None,
-            }
-            result.append(recipe_data)
-        return result
+        return RecipeMinifiedSerializer(
+            recipes,
+            many=True,
+            context=self.context,
+        ).data
 
     def get_recipes_count(self, obj):
         """Возвращает количество рецептов автора."""

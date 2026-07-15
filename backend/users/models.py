@@ -1,12 +1,26 @@
-from constants import MAX_LENGTH_EMAIL
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+
+from constants import (
+    MAX_LENGTH_EMAIL,
+    MAX_LENGTH_FIRST_NAME,
+    MAX_LENGTH_LAST_NAME
+)
 
 
 class User(AbstractUser):
     """
     Кастомная модель Пользователя с аватаром. Вход только по email.
     """
+
+    first_name = models.CharField(
+        max_length=MAX_LENGTH_FIRST_NAME,
+        verbose_name="Имя",
+    )
+    last_name = models.CharField(
+        max_length=MAX_LENGTH_LAST_NAME,
+        verbose_name="Фамилия",
+    )
 
     email = models.EmailField(
         max_length=MAX_LENGTH_EMAIL,
@@ -56,8 +70,13 @@ class Subscription(models.Model):
     class Meta:
         verbose_name = "Подписка"
         verbose_name_plural = "Подписки"
-        unique_together = ("subscriber", "author")
         ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["subscriber", "author"],
+                name="unique_subscriber_author"
+            )
+        ]
 
     def __str__(self):
         return (
