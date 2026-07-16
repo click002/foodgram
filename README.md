@@ -321,13 +321,7 @@ https://nikita.hopto.org/admin/
 
 # REST API
 
-Документация доступна по адресу:
-
-Продакшн:
-
-https://nikita.hopto.org/api/docs/
-
-Локально:
+Документация доступна локально по адресу:
 
 ```
 http://localhost/api/docs/
