@@ -6,20 +6,24 @@ from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import (
-    IsAuthenticated, IsAuthenticatedOrReadOnly,)
+    IsAuthenticated, IsAuthenticatedOrReadOnly
+)
 from rest_framework.response import Response
 
 from api.filters import IngredientFilter, RecipeFilter
 from api.permissions import IsAuthorOrReadOnly
-from users.models import (
-    Favorite, Ingredient, Recipe, RecipeIngredient, ShoppingCart, Subscription,
-    Tag,)
+from recipes.models import (
+    Favorite, Ingredient, Recipe, RecipeIngredient, ShoppingCart, Tag
+)
+from users.models import Subscription
 
 from .serializers import (
     CustomUserSerializer, IngredientSerializer, RecipeCreateUpdateSerializer,
     RecipeListSerializer, RecipeMinifiedSerializer, TagSerializer,
-    UserWithRecipesSerializer,)
+    UserWithRecipesSerializer
+)
 
 User = get_user_model()
 
@@ -121,7 +125,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Скачивает список покупок в виде текстового файла."""
         user = request.user
 
-        recipes = Recipe.objects.filter(in_shopping_cart__user=user)
+        recipes = Recipe.objects.filter(shopping_cart_items__user=user)
 
         if not recipes.exists():
             response = HttpResponse(
@@ -212,13 +216,14 @@ class UserViewSet(DjoserUserViewSet):
         methods=["post", "delete"],
         permission_classes=[permissions.IsAuthenticated],
     )
-    def subscribe(self, request, pk=None):
+    def subscribe(self, request, id=None):
         """Подписаться или отписаться от автора"""
-        author = self.get_object()
+        author = get_object_or_404(User, pk=id)
         user = request.user
 
         if request.method == "POST":
             if user == author:
+
                 return Response(
                     {"detail": "Нельзя подписаться на самого себя."},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -227,11 +232,11 @@ class UserViewSet(DjoserUserViewSet):
             if Subscription.objects.filter(
                 subscriber=user, author=author
             ).exists():
+                print("🔍 5. subscription already exists")
                 return Response(
                     {"detail": "Вы уже подписаны на этого пользователя."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-
             Subscription.objects.create(subscriber=user, author=author)
             serializer = UserWithRecipesSerializer(
                 author, context={"request": request}

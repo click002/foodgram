@@ -14,7 +14,7 @@ class IngredientFilter(filters.FilterSet):
 
 
 class RecipeFilter(filters.FilterSet):
-    tags = filters.AllValuesMultipleFilter(method="filter_tags")
+    tags = filters.AllValuesMultipleFilter(field_name="tags__slug")
     is_favorited = filters.BooleanFilter(method="filter_is_favorited")
     is_in_shopping_cart = filters.BooleanFilter(
         method="filter_is_in_shopping_cart"
@@ -26,10 +26,10 @@ class RecipeFilter(filters.FilterSet):
 
     def filter_is_favorited(self, queryset, name, value):
         if value and self.request and self.request.user.is_authenticated:
-            return queryset.filter(favorited_by_users__user=self.request.user)
+            return queryset.filter(favorites__user=self.request.user)
         return queryset
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
         if value and self.request and self.request.user.is_authenticated:
-            return queryset.filter(in_shopping_cart__user=self.request.user)
+            return queryset.filter(shopping_cart_items__user=self.request.user)
         return queryset
