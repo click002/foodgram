@@ -306,3 +306,10 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         self._save_ingredients(instance, ingredients_data)
 
         return super().update(instance, validated_data)
+
+    def to_representation(self, instance):
+        """Возвращает полные данные рецепта после создания/обновления."""
+        return RecipeListSerializer(
+            instance,
+            context=self.context
+        ).data
