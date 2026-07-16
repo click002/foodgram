@@ -26,11 +26,11 @@ class FoodgramUserAdmin(UserAdmin):
     list_filter = ("is_active", "is_staff", "is_superuser", "date_joined")
 
     fieldsets = UserAdmin.fieldsets + (
-        ("Дополнительные поля", {"fields": ("avatar", "subscriptions")}),
+        ("Дополнительные поля", {"fields": ("avatar")}),
     )
 
     add_fieldsets = UserAdmin.add_fieldsets + (
-        ("Дополнительные поля", {"fields": ("avatar", "subscriptions")}),
+        ("Дополнительные поля", {"fields": ("avatar")}),
     )
 
 
