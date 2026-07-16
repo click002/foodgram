@@ -32,12 +32,11 @@ class IngredientAdmin(admin.ModelAdmin):
     list_filter = ("measurement_unit",)
 
 
-class RecipeTagInline(admin.TabularInline):
-    """Inline-форма для добавления тегов прямо на странице рецепта"""
-    model = Recipe.tags.through
+class RecipeIngredientInline(admin.TabularInline):
+    """Inline-форма для добавления ингредиентов прямо на странице рецепта"""
+    model = Recipe.ingredients.through
     extra = 1
     min_num = 1
-    validate_min_num = True
 
 
 @admin.register(Recipe)
@@ -59,7 +58,7 @@ class RecipeAdmin(admin.ModelAdmin):
     list_filter = ("author", "tags", "pub_date")
 
     inlines = [
-        RecipeTagInline,
+        RecipeIngredientInline,
     ]
 
     @admin.display(description="В избранном")
