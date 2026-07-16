@@ -210,7 +210,10 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         many=True,
         write_only=True,
     )
-
+    # вот так? извините что сюда пишу. а еще у меня проблема что
+    # рецепты стало создаваться ООООЧЕНЬ долго. я нажимаю кнопку СОХРАНИТЬ
+    # и ничего не происходит. как будто не работает! но через минут 5 появлятся
+    # рецепт на сайте. при этом через админку все отлично
     image = Base64ImageField(required=False)
 
     class Meta:
@@ -299,12 +302,10 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         tags_data = validated_data.pop("tags", None)
         ingredients_data = validated_data.pop("ingredients", None)
 
-        if tags_data is not None:
-            instance.tags.set(tags_data)
+        instance.tags.set(tags_data)
 
-        if ingredients_data is not None:
-            instance.recipe_ingredients.all().delete()
+        instance.recipe_ingredients.all().delete()
 
-            self._save_ingredients(instance, ingredients_data)
+        self._save_ingredients(instance, ingredients_data)
 
         return super().update(instance, validated_data)
