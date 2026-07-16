@@ -30,7 +30,7 @@ class FoodgramUserAdmin(UserAdmin):
     )
 
     add_fieldsets = UserAdmin.add_fieldsets + (
-        ("Дополнительные поля", {"fields": ("avatar")}),
+        ("Дополнительные поля", {"fields": ("avatar", "avatar")}),
     )
 
 
