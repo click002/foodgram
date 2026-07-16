@@ -1,87 +1,172 @@
 # Foodgram
 
-**Адрес сайта:**  
-[https://nikita.hopto.org](https://nikita.hopto.org)  
-[http://158.160.202.212](http://158.160.202.212)
+[![Workflow Status](https://github.com/click002/foodgram/actions/workflows/main.yml/badge.svg)](https://github.com/click002/foodgram/actions/workflows/main.yml)
+
+**Сайт:**  
+https://nikita.hopto.org  
+http://158.160.202.212
+
+**Документация API:**  
+https://nikita.hopto.org/api/docs/
 
 **Автор:** Филин Никита
 
 ---
 
-## Описание
+# Описание
 
-Foodgram — это сайт, где пользователи могут публиковать свои рецепты, добавлять чужие рецепты в избранное, подписываться на авторов и формировать список покупок с автоматическим суммированием ингредиентов для выбранных блюд.
+**Foodgram** — это сервис для публикации рецептов. Пользователи могут создавать собственные рецепты, подписываться на других авторов, добавлять понравившиеся рецепты в избранное и формировать список покупок, в котором автоматически суммируется количество одинаковых ингредиентов.
 
-### Функционал пользователей:
-- Публикация рецептов с фото, тегами и ингредиентами
-- Фильтрация рецептов по тегам и авторам
+## Возможности
+
+- Регистрация и авторизация пользователей
+- Создание, редактирование и удаление рецептов
+- Загрузка изображений блюд
 - Добавление рецептов в избранное
-- Формирование списка покупок с выгрузкой в `.txt`
-- Подписка на авторов рецептов
-- Личный профиль с аватаром
+- Подписка на авторов
+- Формирование списка покупок
+- Скачивание списка покупок в формате `.txt`
+- Фильтрация рецептов по тегам
+- Работа через REST API
+- Административная панель Django
 
 ---
 
-## Как установить и развернуть
+# Технологии
 
-### Локальный запуск
+- Python 3.10
+- Django 5.1.4
+- Django REST Framework
+- PostgreSQL 15
+- Gunicorn
+- Nginx
+- Docker
+- Docker Compose
+- GitHub Actions (CI/CD)
 
-1. Клонируй репозиторий:
+---
+
+# Структура проекта
+
+```text
+foodgram/
+├── backend/
+├── frontend/
+├── infra/
+├── data/
+├── docs/
+├── .github/
+├── docker-compose.production.yml
+├── README.md
+└── requirements.txt
+```
+
+---
+
+# Локальный запуск
+
+## 1. Клонирование репозитория
+
 ```bash
-git clone https://github.com/click002/foodgram
+git clone https://github.com/click002/foodgram.git
 cd foodgram
 ```
 
-2. Создай и активируй виртуальное окружение:
+---
+
+## 2. Создание виртуального окружения
+
+Linux / macOS
+
 ```bash
 python -m venv venv
-source venv/bin/activate  # для Linux/Mac
-# или venv\Scripts\activate  # для Windows
+source venv/bin/activate
 ```
 
-3. Установи зависимости:
+Windows
+
+```powershell
+python -m venv venv
+venv\Scripts\activate
+```
+
+---
+
+## 3. Установка зависимостей
+
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Создай файл `.env` в корне проекта:
+---
+
+## 4. Создание файла `.env`
+
+Создайте файл `.env` в корне проекта.
+
 ```env
-SECRET_KEY=твой_секретный_ключ
+SECRET_KEY=your_secret_key
 DEBUG=True
 USE_SQLITE=False
+
 POSTGRES_DB=foodgram
 POSTGRES_USER=food_user
 POSTGRES_PASSWORD=foodgram_password
+
 DB_HOST=db
 DB_PORT=5432
+
 ALLOWED_HOSTS=127.0.0.1,localhost
 ```
 
-5. Запусти контейнеры:
+---
+
+## 5. Запуск Docker
+
+Перейдите в каталог `infra`.
+
 ```bash
 cd infra
 docker-compose up -d
 ```
 
-6. Выполни миграции и собери статику:
+---
+
+## 6. Выполнение миграций
+
 ```bash
 docker-compose exec backend python manage.py migrate
+```
+
+---
+
+## 7. Сбор статических файлов
+
+```bash
 docker-compose exec backend python manage.py collectstatic --noinput
 ```
 
-7. Создай суперпользователя:
+---
+
+## 8. Создание суперпользователя
+
 ```bash
 docker-compose exec backend python manage.py createsuperuser
 ```
 
-8. Загрузи ингредиенты:
+---
+
+## 9. Загрузка ингредиентов
+
 ```bash
 docker-compose exec backend python manage.py shell -c "
 import json
-with open('/app/data/ingredients.json') as f:
-    data = json.load(f)
 from recipes.models import Ingredient
-for item in data:
+
+with open('/app/data/ingredients.json') as f:
+    ingredients = json.load(f)
+
+for item in ingredients:
     Ingredient.objects.get_or_create(
         name=item['name'],
         measurement_unit=item['measurement_unit']
@@ -89,88 +174,195 @@ for item in data:
 "
 ```
 
-9. Открой в браузере: `http://localhost`
+---
+
+## 10. Открыть проект
+
+Главная страница
+
+```
+http://localhost
+```
+
+Документация API
+
+```
+http://localhost/api/docs/
+```
+
+Административная панель
+
+```
+http://localhost/admin/
+```
 
 ---
 
-### Деплой на сервер
+# Деплой на сервер
 
-1. Установи Docker на сервер
+## 1. Установить Docker и Docker Compose
 
-2. Скопируй на сервер файлы:
+Например, на Ubuntu:
+
+```bash
+sudo apt update
+sudo apt install docker.io docker-compose-plugin -y
+sudo systemctl enable docker
+```
+
+---
+
+## 2. Скопировать на сервер
+
+Необходимо перенести следующие файлы:
+
 - `docker-compose.production.yml`
 - `nginx.conf`
 - `.env`
 
-3. Создай `.env` на сервере с настройками:
+---
+
+## 3. Создать `.env`
+
 ```env
-SECRET_KEY=твой_секретный_ключ
+SECRET_KEY=your_secret_key
+
 DEBUG=False
 USE_SQLITE=False
+
 POSTGRES_DB=foodgram
 POSTGRES_USER=food_user
 POSTGRES_PASSWORD=foodgram_password
+
 DB_HOST=db
 DB_PORT=5432
+
 ALLOWED_HOSTS=158.160.202.212,nikita.hopto.org
 ```
 
-4. Запусти контейнеры:
+---
+
+## 4. Запустить контейнеры
+
 ```bash
 sudo docker-compose -f docker-compose.production.yml up -d
+```
+
+---
+
+## 5. Выполнить миграции
+
+```bash
 sudo docker-compose -f docker-compose.production.yml exec backend python manage.py migrate
+```
+
+---
+
+## 6. Собрать статику
+
+```bash
 sudo docker-compose -f docker-compose.production.yml exec backend python manage.py collectstatic --noinput
 ```
 
-5. Настрой HTTPS (если есть домен):
+---
+
+## 7. Настроить HTTPS
+
+Если используется доменное имя:
+
 ```bash
 sudo certbot --nginx -d nikita.hopto.org
 ```
 
 ---
 
-### CI/CD
+# CI/CD
 
-Проект настроен на автоматический деплой через **GitHub Actions** при пуше в ветку `main`.
+Проект автоматически проходит сборку и деплой при отправке изменений в ветку **main** с помощью **GitHub Actions**.
 
-Для работы CI/CD нужно добавить секреты в GitHub:
-- `DOCKER_USERNAME`
-- `DOCKER_PASSWORD`
-- `HOST`
-- `USER`
-- `SSH_KEY`
-### Для получения уведомлений в Telegram добавьте в Secrets две переменные:
+Для работы необходимо добавить в **GitHub Secrets** следующие переменные:
 
-TELEGRAM_TO — ID вашего Telegram-аккаунта. Узнать ID можно у бота @userinfobot.
-TELEGRAM_TOKEN — токен вашего бота. Получить токен можно у бота @BotFather.
-⚠️ Важно: чтобы бот мог отправлять вам сообщения, сначала напишите ему что-нибудь сами. Ботам запрещено первыми начинать разговор.
+```text
+DOCKER_USERNAME
+DOCKER_PASSWORD
 
+HOST
+USER
+SSH_KEY
 
----
-
-## Технологии
-
-- Python 3.10
-- Django 5.1.4
-- Django REST Framework
-- PostgreSQL 15
-- Nginx 1.25
-- Gunicorn
-- Docker
-- GitHub Actions (CI/CD)
-
----
-
-## Данные для входа в админ-зону
-
+TELEGRAM_TO
+TELEGRAM_TOKEN
 ```
+
+### Telegram
+
+Для получения уведомлений:
+
+- создайте бота через **@BotFather**;
+- получите токен;
+- узнайте свой Telegram ID через **@userinfobot**;
+- отправьте сообщение своему боту (Telegram запрещает ботам писать первыми).
+
+---
+
+# Данные администратора
+
+```text
 Username: admin
 Email: admin@yandex.ru
 Password: Admin55555#
 ```
 
-Админка: `https://nikita.hopto.org/admin/`
+Административная панель:
+
+https://nikita.hopto.org/admin/
 
 ---
 
-**Ссылка на репозиторий:** [https://github.com/click002/foodgram](https://github.com/click002/foodgram)
+# REST API
+
+Документация доступна по адресу:
+
+Продакшн:
+
+https://nikita.hopto.org/api/docs/
+
+Локально:
+
+```
+http://localhost/api/docs/
+```
+
+---
+
+# Репозиторий
+
+GitHub:
+
+https://github.com/click002/foodgram
+
+---
+
+# Автор
+
+**Филин Никита**
+
+---
+
+# Что реализовано
+
+- публикация рецептов;
+- работа с ингредиентами;
+- загрузка изображений;
+- избранное;
+- подписки;
+- список покупок;
+- выгрузка списка покупок в TXT;
+- REST API;
+- Docker-контейнеризация;
+- PostgreSQL;
+- Gunicorn + Nginx;
+- GitHub Actions;
+- автоматический деплой;
+- HTTPS;
+- Swagger/ReDoc документация API.
