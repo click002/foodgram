@@ -273,7 +273,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         RecipeIngredient.objects.bulk_create(
             RecipeIngredient(
                 recipe=recipe,
-                ingredient_id=ingredient["id"],
+                ingredient_id=ingredient["id"].id,
                 amount=ingredient["amount"],
             )
             for ingredient in ingredients
@@ -306,10 +306,3 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         self._save_ingredients(instance, ingredients_data)
 
         return super().update(instance, validated_data)
-
-    def to_representation(self, instance):
-        """Возвращает полные данные рецепта после создания/обновления."""
-        return RecipeListSerializer(
-            instance,
-            context=self.context
-        ).data
