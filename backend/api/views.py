@@ -1,3 +1,5 @@
+import base64
+
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.db import models
@@ -8,22 +10,19 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import (
-    IsAuthenticated, IsAuthenticatedOrReadOnly
-)
+    IsAuthenticated, IsAuthenticatedOrReadOnly,)
 from rest_framework.response import Response
 
 from api.filters import IngredientFilter, RecipeFilter
 from api.permissions import IsAuthorOrReadOnly
 from recipes.models import (
-    Favorite, Ingredient, Recipe, RecipeIngredient, ShoppingCart, Tag
-)
+    Favorite, Ingredient, Recipe, RecipeIngredient, ShoppingCart, Tag,)
 from users.models import Subscription
 
 from .serializers import (
     CustomUserSerializer, IngredientSerializer, RecipeCreateUpdateSerializer,
     RecipeListSerializer, RecipeMinifiedSerializer, TagSerializer,
-    UserWithRecipesSerializer
-)
+    UserWithRecipesSerializer,)
 
 User = get_user_model()
 
@@ -283,8 +282,6 @@ class UserViewSet(DjoserUserViewSet):
                 avatar_base64 = avatar_base64.split(",")[1]
 
             try:
-                import base64
-
                 image_data = base64.b64decode(avatar_base64)
             except Exception:
                 return Response(
