@@ -16,3 +16,6 @@ MAX_LENGTH_RECIPE_NAME = 254
 
 # RecipeCreateUpdateSerializer
 MIN_COOKING_TIME = 1
+
+# Pagination
+PAGINATION_PAGE_SIZE = 6

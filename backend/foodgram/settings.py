@@ -119,8 +119,8 @@ DJOSER = {
     "LOGIN_FIELD": "email",
     "USER_CREATE_PASSWORD_RETYPE": False,
     "SERIALIZERS": {
-        "user": "api.serializers.CustomUserSerializer",
-        "current_user": "api.serializers.CustomUserSerializer",
+        "user": "api.serializers.FoodgramUserSerializer",
+        "current_user": "api.serializers.FoodgramUserSerializer",
     },
 }
 

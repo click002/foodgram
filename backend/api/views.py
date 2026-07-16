@@ -20,7 +20,7 @@ from recipes.models import (
 from users.models import Subscription
 
 from .serializers import (
-    CustomUserSerializer, IngredientSerializer, RecipeCreateUpdateSerializer,
+    FoodgramUserSerializer, IngredientSerializer, RecipeCreateUpdateSerializer,
     RecipeListSerializer, RecipeMinifiedSerializer, TagSerializer,
     UserWithRecipesSerializer,)
 
@@ -68,15 +68,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
         user = request.user
 
         if request.method == "POST":
-            if Favorite.objects.filter(user=user, recipe=recipe).exists():
-                return Response(
-                    {"detail": "Рецепт уже в избранном."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            Favorite.objects.create(user=user, recipe=recipe)
-            serializer = RecipeMinifiedSerializer(recipe)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return self._add_to_favorite(user, recipe)
+        return self._remove_from_favorite(user, recipe)
 
+    def _add_to_favorite(self, user, recipe):
+        if Favorite.objects.filter(user=user, recipe=recipe).exists():
+            return Response(
+                {"detail": "Рецепт уже в избранном."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        Favorite.objects.create(user=user, recipe=recipe)
+        serializer = RecipeMinifiedSerializer(recipe)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def _remove_from_favorite(self, user, recipe):
         deleted, _ = Favorite.objects.filter(
             user=user, recipe=recipe
         ).delete()
@@ -96,17 +101,23 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Добавляет или удаляет рецепт из списка покупок."""
         recipe = self.get_object()
         user = request.user
-
         if request.method == "POST":
-            if ShoppingCart.objects.filter(user=user, recipe=recipe).exists():
-                return Response(
-                    {"detail": "Рецепт уже в списке покупок."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            ShoppingCart.objects.create(user=user, recipe=recipe)
-            serializer = RecipeMinifiedSerializer(recipe)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return self._add_to_shopping_cart(user, recipe)
+        return self._remove_from_shopping_cart(user, recipe)
 
+    def _add_to_shopping_cart(self, user, recipe):
+        """Добавляет рецепт в список покупок."""
+        if ShoppingCart.objects.filter(user=user, recipe=recipe).exists():
+            return Response(
+                {"detail": "Рецепт уже в списке покупок."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        ShoppingCart.objects.create(user=user, recipe=recipe)
+        serializer = RecipeMinifiedSerializer(recipe)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def _remove_from_shopping_cart(self, user, recipe):
+        """Удаляет рецепт из списка покупок."""
         deleted, _ = ShoppingCart.objects.filter(
             user=user, recipe=recipe
         ).delete()
@@ -116,6 +127,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
             {"detail": "Рецепта нет в списке покупок."},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+    def _create_shopping_response(self, content, filename="shopping_list.txt"):
+        """Создает HTTP ответ для скачивания файла."""
+        response = HttpResponse(content, content_type="text/plain")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
 
     @action(
         detail=False, methods=["get"], permission_classes=[IsAuthenticated]
@@ -127,13 +144,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipes = Recipe.objects.filter(shopping_cart_items__user=user)
 
         if not recipes.exists():
-            response = HttpResponse(
-                "Список покупок пуст.", content_type="text/plain"
-            )
-            response["Content-Disposition"] = (
-                'attachment; filename="shopping_list.txt"'
-            )
-            return response
+            return self._create_shopping_response("Список покупок пуст.")
 
         ingredients = (
             RecipeIngredient.objects.filter(recipe__in=recipes)
@@ -143,12 +154,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
 
         file_content = self._prepare_shopping_text(ingredients)
-
-        response = HttpResponse(file_content, content_type="text/plain")
-        response["Content-Disposition"] = (
-            'attachment; filename="shopping_list.txt"'
-        )
-        return response
+        return self._create_shopping_response(file_content)
 
     def _prepare_shopping_text(self, ingredients):
         """Подготавливает текст для списка покупок."""
@@ -178,7 +184,7 @@ class UserViewSet(DjoserUserViewSet):
     )
     def me(self, request):
         """Возвращает профиль текущего пользователя"""
-        serializer = CustomUserSerializer(
+        serializer = FoodgramUserSerializer(
             request.user, context={"request": request}
         )
         return Response(serializer.data)
@@ -196,7 +202,7 @@ class UserViewSet(DjoserUserViewSet):
 
         authors = User.objects.filter(
             followers__subscriber=user
-        ).distinct()
+        )
 
         page = self.paginate_queryset(authors)
         if page is not None:
@@ -222,7 +228,6 @@ class UserViewSet(DjoserUserViewSet):
 
         if request.method == "POST":
             if user == author:
-
                 return Response(
                     {"detail": "Нельзя подписаться на самого себя."},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -231,7 +236,6 @@ class UserViewSet(DjoserUserViewSet):
             if Subscription.objects.filter(
                 subscriber=user, author=author
             ).exists():
-                print("🔍 5. subscription already exists")
                 return Response(
                     {"detail": "Вы уже подписаны на этого пользователя."},
                     status=status.HTTP_400_BAD_REQUEST,
