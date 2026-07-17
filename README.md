@@ -6,9 +6,6 @@
 https://nikita.hopto.org  
 http://158.160.202.212
 
-**Документация API:**  
-http://localhost/api/docs/
-
 **Автор:** Филин Никита
 
 ---
