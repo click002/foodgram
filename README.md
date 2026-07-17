@@ -7,7 +7,7 @@ https://nikita.hopto.org
 http://158.160.202.212
 
 **Документация API:**  
-https://nikita.hopto.org/api/docs/
+http://localhost/api/docs/
 
 **Автор:** Филин Никита
 
